@@ -1,18 +1,12 @@
 {
-  "name": "my-api",
+  "name": "customer-api",
   "version": "1.0.0",
-  "description": "",
-  "main": "app-mysql.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app-mysql.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "cors": "^x.x.x",
-    "express": "^x.x.x",
-    "mysql2": "^x.x.x"
+    "express": "^4.18.0",
+    "mysql2": "^3.6.0",
+    "cors": "^2.8.5"
   }
 }
