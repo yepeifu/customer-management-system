@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客户管理系统</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        h1 { color: #333; }
+        .form { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        input { padding: 8px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button.delete { background: #dc3545; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        .status { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>客户管理系统</h1>
+        
+        <div v-if="message" :class="['status', messageType]">{{ message }}</div>
+        
+        <div class="form">
+            <h3>添加新客户</h3>
+            <input v-model="newUser.name" placeholder="姓名" />
+            <input v-model="newUser.phone" placeholder="电话" />
+            <button @click="addUser">添加</button>
+        </div>
+
+        <h3>客户列表</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>姓名</th>
+                    <th>电话</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="user in users" :key="user.id">
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>{{ user.created_at }}</td>
+                    <td>
+                        <button class="delete" @click="deleteUser(user.id)">删除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    users: [],
+                    newUser: { name: '', phone: '' },
+                    message: '',
+                    messageType: ''
+                }
+            },
+            mounted() {
+                this.fetchUsers();
+            },
+            methods: {
+                async fetchUsers() {
+                    try {
+                        const res = await axios.get('http://localhost:3000/api/user/list');
+                        if (res.data.code === 200) {
+                            this.users = res.data.data;
+                        }
+                    } catch (err) {
+                        this.showMessage('获取数据失败：' + err.message, 'error');
+                    }
+                },
+                async addUser() {
+                    if (!this.newUser.name || !this.newUser.phone) {
+                        this.showMessage('请填写姓名和电话', 'error');
+                        return;
+                    }
+                    try {
+                        const res = await axios.post('http://localhost:3000/api/user/add', this.newUser);
+                        if (res.data.code === 200) {
+                            this.showMessage('添加成功', 'success');
+                            this.newUser = { name: '', phone: '' };
+                            this.fetchUsers();
+                        }
+                    } catch (err) {
+                        this.showMessage('添加失败：' + err.message, 'error');
+                    }
+                },
+                async deleteUser(id) {
+                    if (!confirm('确定删除吗？')) return;
+                    try {
+                        const res = await axios.delete(`http://localhost:3000/api/user/delete/${id}`);
+                        if (res.data.code === 200) {
+                            this.showMessage('删除成功', 'success');
+                            this.fetchUsers();
+                        }
+                    } catch (err) {
+                        this.showMessage('删除失败：' + err.message, 'error');
+                    }
+                },
+                showMessage(msg, type) {
+                    this.message = msg;
+                    this.messageType = type;
+                    setTimeout(() => this.message = '', 3000);
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
